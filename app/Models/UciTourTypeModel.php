@@ -6,22 +6,19 @@ use CodeIgniter\Model;
 
 class UciTourTypeModel extends Model
 {
-    protected $table            = 'uci_tour_type';
-    protected $primaryKey       = 'id';
-    protected $useAutoIncrement = true;
-    protected $returnType       = 'array';
-    protected $useSoftDeletes   = false;
-    protected $protectFields    = true;
-    protected $allowedFields    = ['name'];
-
+    protected $table         = 'uci_tour_type';
+    protected $primaryKey    = 'id';
+    protected $returnType    = 'array';
+    protected $protectFields = true;
+    protected $allowedFields = ['name'];
     protected $useTimestamps = false;
 
     /**
-     * Vrátí asociativní pole id => name pro dropdown.
+     * Vrátí asociativní pole id => name pro použití v dropdownu
      */
     public function getDropdown(): array
     {
-        $rows   = $this->findAll();
+        $rows = $this->orderBy('name', 'ASC')->findAll();
         $result = [];
         foreach ($rows as $row) {
             $result[$row['id']] = $row['name'];

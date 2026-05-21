@@ -12,7 +12,22 @@ class RaceModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['default_name', 'link', 'country', 'type'];
+
+    // Pouze tyto sloupce lze editovat přes model
+    protected $allowedFields = [
+        'default_name',
+        'link',
+        'country',
+        'type',
+    ];
 
     protected $useTimestamps = false;
+
+    /**
+     * Vrátí stránkovaný seznam závodů
+     */
+    public function getRacesPaginated(int $perPage): array
+    {
+        return $this->paginate($perPage);
+    }
 }

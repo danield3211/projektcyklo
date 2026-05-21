@@ -10,36 +10,50 @@ class RaceYearModel extends Model
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
-    protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = [
-        'real_name', 'id_race', 'year', 'start_date', 'end_date',
-        'uci_tour', 'logo', 'sex', 'category', 'country',
+
+    // Pouze tyto sloupce lze editovat přes model
+    protected $allowedFields = [
+        'real_name',
+        'id_race',
+        'year',
+        'start_date',
+        'end_date',
+        'uci_tour',
+        'logo',
+        'sex',
+        'category',
+        'country',
+        'deleted_at',
+        'created_at',
+        'updated_at',
     ];
 
-    protected $useTimestamps = false;
+    protected $useTimestamps = true;
+    protected $createdField  = 'created_at';
+    protected $updatedField  = 'updated_at';
+    protected $deletedField  = 'deleted_at';
+
+    // Soft delete – záznamy se fyzicky nemažou, jen se nastaví deleted_at
+    protected $useSoftDeletes = true;
 
     /**
-     * Vrátí ročníky pro daný závod včetně názvu UCI kategorie.
+     * Vrátí ročníky pro daný závod (stránkovaně)
      */
-    public function getYearsByRace(int $raceId): array
+    public function getByRacePaginated(int $raceId, int $perPage): array
     {
-        return $this->select('race_year.*, uci_tour_type.name AS uci_tour_name')
-            ->join('uci_tour_type', 'uci_tour_type.id = race_year.uci_tour', 'left')
-            ->where('race_year.id_race', $raceId)
-            ->orderBy('race_year.year', 'DESC')
-            ->findAll();
+        return $this->where('id_race', $raceId)
+                    ->orderBy('year', 'DESC')
+                    ->paginate($perPage);
     }
 
     /**
-     * Vrátí detail jednoho ročníku včetně názvu závodu a UCI kategorie.
+     * Vrátí jeden ročník i se soft-deleted (pro přehled)
      */
-    public function getYearDetail(int $id): ?array
+    public function getByRaceAll(int $raceId): array
     {
-        return $this->select('race_year.*, uci_tour_type.name AS uci_tour_name, race.default_name AS race_name')
-            ->join('uci_tour_type', 'uci_tour_type.id = race_year.uci_tour', 'left')
-            ->join('race', 'race.id = race_year.id_race', 'left')
-            ->where('race_year.id', $id)
-            ->first();
+        return $this->where('id_race', $raceId)
+                    ->orderBy('year', 'DESC')
+                    ->findAll();
     }
 }

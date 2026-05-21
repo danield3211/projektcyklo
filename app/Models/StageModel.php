@@ -10,25 +10,43 @@ class StageModel extends Model
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
-    protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = [
-        'number', 'date', 'note', 'departure', 'arrival',
-        'distance', 'parcour_type', 'vertical_meters',
-        'profile', 'id_race_year', 'link',
+
+    // Pouze tyto sloupce lze editovat přes model
+    protected $allowedFields = [
+        'number',
+        'date',
+        'note',
+        'departure',
+        'arrival',
+        'distance',
+        'parcour_type',
+        'vertical_meters',
+        'profile',
+        'id_race_year',
+        'link',
+        'deleted_at',
+        'created_at',
+        'updated_at',
     ];
 
-    protected $useTimestamps = false;
+    protected $useTimestamps = true;
+    protected $createdField  = 'created_at';
+    protected $updatedField  = 'updated_at';
+    protected $deletedField  = 'deleted_at';
+
+    protected $useSoftDeletes = true;
 
     /**
-     * Vrátí etapy pro daný ročník seřazené podle čísla etapy.
+     * Vrátí etapy pro daný ročník závodu
      */
-    public function getStagesByYear(int $raceYearId): array
+    public function getByRaceYear(int $raceYearId): array
     {
-        return $this->select('stage.*, parcour_type.name AS parcour_name, parcour_type.icon AS parcour_icon')
-            ->join('parcour_type', 'parcour_type.id = stage.parcour_type', 'left')
-            ->where('stage.id_race_year', $raceYearId)
-            ->orderBy('stage.number', 'ASC')
-            ->findAll();
+        return $this->select('stage.*, parcour_type.name AS parcour_name')
+                    ->join('parcour_type', 'parcour_type.id = stage.parcour_type', 'left')
+                    ->where('stage.id_race_year', $raceYearId)
+                    ->orderBy('stage.number', 'ASC')
+                    ->orderBy('stage.date', 'ASC')
+                    ->findAll();
     }
 }

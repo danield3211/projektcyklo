@@ -2,71 +2,64 @@
 <?= $this->section('content') ?>
 
 <?php
-/**
- * Formátuje datum ročníku:
- * - jednodenní závod: jen jedno datum
- * - vícedenní: od – do
- * Formát: "5. ledna 2024" (česky)
- */
 function formatRaceDates(string $startDate, string $endDate): string
 {
     $start = new DateTime($startDate);
     $end   = new DateTime($endDate);
-
-    $formatter = new IntlDateFormatter('cs_CZ', IntlDateFormatter::LONG, IntlDateFormatter::NONE);
-
-    if ($startDate === $endDate) {
-        return $formatter->format($start);
+    if (class_exists('IntlDateFormatter')) {
+        $formatter = new IntlDateFormatter('cs_CZ', IntlDateFormatter::LONG, IntlDateFormatter::NONE);
+        if ($startDate === $endDate) return $formatter->format($start);
+        if ($start->format('Y-m') === $end->format('Y-m')) {
+            $dayFmt = new IntlDateFormatter('cs_CZ', IntlDateFormatter::NONE, IntlDateFormatter::NONE, null, null, 'd.');
+            return $dayFmt->format($start) . ' – ' . $formatter->format($end);
+        }
+        return $formatter->format($start) . ' – ' . $formatter->format($end);
     }
-
-    // Stejný měsíc a rok → zkrátíme
-    if ($start->format('Y-m') === $end->format('Y-m')) {
-        $dayFormatter = new IntlDateFormatter('cs_CZ', IntlDateFormatter::NONE, IntlDateFormatter::NONE, null, null, 'd.');
-        return $dayFormatter->format($start) . ' – ' . $formatter->format($end);
-    }
-
-    return $formatter->format($start) . ' – ' . $formatter->format($end);
+    if ($startDate === $endDate) return (new DateTime($startDate))->format('j. n. Y');
+    return (new DateTime($startDate))->format('j. n.') . ' – ' . (new DateTime($endDate))->format('j. n. Y');
 }
 
-function flagSpan(string $country): string
-{
-    if (!$country) return '';
-    return '<span class="fi fi-' . strtolower(esc($country)) . '" title="' . strtoupper(esc($country)) . '"></span>';
-}
+
 ?>
 
-<!-- Breadcrumb -->
-<nav aria-label="breadcrumb" class="mb-3">
-    <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="<?= base_url('races') ?>">Závody</a></li>
-        <li class="breadcrumb-item active"><?= esc($race['default_name']) ?></li>
-    </ol>
-</nav>
-
-<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-    <h1 class="h3 mb-0">
-        <?= flagSpan($race['country']) ?>
-        <?= esc($race['default_name']) ?>
-    </h1>
-    <a href="<?= base_url('races/' . $race['id'] . '/years/create') ?>"
-       class="btn btn-primary">
-        <i class="bi bi-plus-circle me-1"></i>Přidat ročník
-    </a>
+<!-- PAGE HEADER -->
+<div class="page-header-bar">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mb-2">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="<?= base_url('races') ?>"><i class="bi bi-house me-1"></i>Závody</a></li>
+                <li class="breadcrumb-item active"><?= esc($race['default_name']) ?></li>
+            </ol>
+        </nav>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <h1 class="mb-0 d-flex align-items-center gap-2">
+                <?= flagSpan($race['country']) ?>
+                <?= esc($race['default_name']) ?>
+            </h1>
+            <a href="<?= base_url('races/' . $race['id'] . '/years/create') ?>" class="btn btn-red">
+                <i class="bi bi-plus-circle me-1"></i>Přidat ročník
+            </a>
+        </div>
+    </div>
 </div>
 
+<div class="container">
+
 <?php if (empty($raceYears)): ?>
-    <div class="alert alert-info">Pro tento závod zatím nejsou žádné ročníky.</div>
+    <div class="alert alert-info rounded-3">
+        <i class="bi bi-info-circle me-2"></i>Pro tento závod zatím nejsou žádné ročníky.
+    </div>
 <?php else: ?>
 
-<div class="table-responsive shadow-sm rounded">
-<table class="table table-hover align-middle mb-0 bg-white">
-    <thead class="table-dark">
+<div class="table-card">
+<table class="table table-hover align-middle mb-0">
+    <thead>
         <tr>
             <th>Název</th>
             <th>Ročník</th>
             <th>Datum</th>
             <th>Logo</th>
-            <th>Kategorie (UCI Tour)</th>
+            <th>Kategorie UCI</th>
             <th>Země</th>
             <th class="text-center">Etapy</th>
             <th class="text-end">Akce</th>
@@ -76,64 +69,59 @@ function flagSpan(string $country): string
     <?php foreach ($raceYears as $ry): ?>
         <tr>
             <td class="fw-semibold"><?= esc($ry['real_name']) ?></td>
-            <td><?= esc($ry['year']) ?></td>
             <td>
-                <?php
-                    // Pokus o IntlDateFormatter; fallback na základní formát
-                    if (class_exists('IntlDateFormatter')) {
-                        echo formatRaceDates($ry['start_date'], $ry['end_date']);
-                    } else {
-                        $s = new DateTime($ry['start_date']);
-                        $e = new DateTime($ry['end_date']);
-                        echo $ry['start_date'] === $ry['end_date']
-                            ? $s->format('j. n. Y')
-                            : $s->format('j. n.') . ' – ' . $e->format('j. n. Y');
-                    }
-                ?>
+                <span class="badge rounded-pill" style="background:#f0f2f8;color:#333;font-size:.85rem;font-weight:600">
+                    <?= esc($ry['year']) ?>
+                </span>
+            </td>
+            <td>
+                <small class="text-muted">
+                    <i class="bi bi-calendar3 me-1"></i><?= formatRaceDates($ry['start_date'], $ry['end_date']) ?>
+                </small>
             </td>
             <td>
                 <?php if ($ry['logo']): ?>
                     <img src="<?= base_url('uploads/logos/' . esc($ry['logo'])) ?>"
-                         alt="logo"
-                         class="logo-thumb img-fluid"
-                         loading="lazy">
+                         alt="logo" class="logo-thumb" loading="lazy">
                 <?php else: ?>
                     <span class="text-muted small">—</span>
                 <?php endif; ?>
             </td>
             <td>
-                <?= esc($uciTourTypes[$ry['uci_tour']] ?? 'Neznámá (' . $ry['uci_tour'] . ')') ?>
+                <span class="badge rounded-pill" style="background:#fff0f0;color:#c1121f;font-size:.8rem;font-weight:600;border:1px solid #fecdd3">
+                    <?= esc($uciTourTypes[$ry['uci_tour']] ?? '?') ?>
+                </span>
             </td>
             <td>
                 <?= flagSpan($ry['country']) ?>
-                <span class="ms-1 text-uppercase small"><?= esc($ry['country']) ?></span>
+                <span class="ms-1 text-uppercase" style="font-size:.78rem;color:#888"><?= esc($ry['country']) ?></span>
             </td>
             <td class="text-center">
                 <?php
-                    // Počet etap
                     $stageCount = (new \App\Models\StageModel())
                         ->where('id_race_year', $ry['id'])
                         ->countAllResults();
                 ?>
                 <?php if ($stageCount > 0): ?>
                     <a href="<?= base_url('raceyears/' . $ry['id'] . '/stages') ?>"
-                       class="badge bg-primary text-decoration-none fs-6">
-                        <?= $stageCount ?>
+                       class="badge rounded-pill text-decoration-none"
+                       style="background:var(--red,#e63946);color:#fff;font-size:.88rem;padding:.35em .75em">
+                        <i class="bi bi-list-ol me-1"></i><?= $stageCount ?>
                     </a>
                 <?php else: ?>
-                    <span class="text-muted">0</span>
+                    <span class="text-muted small">—</span>
                 <?php endif; ?>
             </td>
             <td class="text-end">
                 <a href="<?= base_url('races/' . $race['id'] . '/years/' . $ry['id'] . '/edit') ?>"
-                   class="btn btn-sm btn-outline-secondary me-1" title="Upravit">
+                   class="btn btn-sm btn-outline-secondary rounded-3 me-1" title="Upravit">
                     <i class="bi bi-pencil"></i>
                 </a>
                 <form action="<?= base_url('races/' . $race['id'] . '/years/' . $ry['id'] . '/delete') ?>"
                       method="post" class="d-inline"
                       onsubmit="return confirm('Opravdu chcete odstranit tento ročník?')">
                     <?= csrf_field() ?>
-                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Smazat">
+                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-3" title="Smazat">
                         <i class="bi bi-trash"></i>
                     </button>
                 </form>
@@ -144,11 +132,11 @@ function flagSpan(string $country): string
 </table>
 </div>
 
-<!-- Stránkování -->
 <div class="mt-4 d-flex justify-content-center">
     <?= $pager->links('default', 'bootstrap_pagination') ?>
 </div>
 
 <?php endif; ?>
+</div>
 
 <?= $this->endSection() ?>

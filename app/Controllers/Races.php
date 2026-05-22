@@ -30,9 +30,8 @@ class Races extends BaseController
         $this->config           = new Cycling();
     }
 
-    // ------------------------------------------------------------------
     // 1. Seznam závodů (stránkovaně, v kartách)
-    // ------------------------------------------------------------------
+    
     public function index(): string
     {
         $races  = $this->raceModel->getRacesPaginated($this->config->racesPerPage);
@@ -68,9 +67,8 @@ class Races extends BaseController
         ]);
     }
 
-    // ------------------------------------------------------------------
+    
     // 3. Etapy daného ročníku
-    // ------------------------------------------------------------------
     public function stages(int $raceYearId): string
     {
         $raceYear = $this->raceYearModel->find($raceYearId);
@@ -88,9 +86,9 @@ class Races extends BaseController
         ]);
     }
 
-    // ------------------------------------------------------------------
+    
     // 4. Formulář: nový ročník
-    // ------------------------------------------------------------------
+    
     public function create(int $raceId): string
     {
         $race = $this->raceModel->find($raceId);
@@ -109,9 +107,9 @@ class Races extends BaseController
         ]);
     }
 
-    // ------------------------------------------------------------------
+    
     // 5. Uložení nového ročníku
-    // ------------------------------------------------------------------
+    
     public function store(int $raceId): \CodeIgniter\HTTP\RedirectResponse
     {
         $race = $this->raceModel->find($raceId);
@@ -158,9 +156,9 @@ class Races extends BaseController
                          ->with('success', 'Ročník byl úspěšně přidán.');
     }
 
-    // ------------------------------------------------------------------
+    
     // 6. Formulář: editace ročníku
-    // ------------------------------------------------------------------
+    
     public function edit(int $raceId, int $raceYearId): string
     {
         $race     = $this->raceModel->find($raceId);
@@ -181,9 +179,9 @@ class Races extends BaseController
         ]);
     }
 
-    // ------------------------------------------------------------------
+   
     // 7. Uložení editace ročníku
-    // ------------------------------------------------------------------
+    
     public function update(int $raceId, int $raceYearId): \CodeIgniter\HTTP\RedirectResponse
     {
         $race     = $this->raceModel->find($raceId);
@@ -230,9 +228,9 @@ class Races extends BaseController
                          ->with('success', 'Ročník byl úspěšně upraven.');
     }
 
-    // ------------------------------------------------------------------
+    
     // 8. Soft delete ročníku
-    // ------------------------------------------------------------------
+   
     public function delete(int $raceId, int $raceYearId): \CodeIgniter\HTTP\RedirectResponse
     {
         $raceYear = $this->raceYearModel->find($raceYearId);
@@ -248,9 +246,9 @@ class Races extends BaseController
                          ->with('success', 'Ročník byl odstraněn.');
     }
 
-    // ------------------------------------------------------------------
+    
     // Helper: dropdown let od 1900 do aktuálního roku
-    // ------------------------------------------------------------------
+    
     private function _buildYearDropdown(): array
     {
         $years = [];

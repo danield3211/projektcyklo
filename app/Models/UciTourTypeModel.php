@@ -11,7 +11,8 @@ class UciTourTypeModel extends Model
     protected $returnType    = 'array';
     protected $protectFields = true;
     protected $allowedFields = ['name'];
-    protected $useTimestamps = false;
+    protected $useTimestamps = true;
+   
 
     /**
      * Vrátí asociativní pole id => name pro použití v dropdownu

@@ -7,7 +7,7 @@ use CodeIgniter\Router\RouteCollection;
  */
 
 // Výchozí route CI4
-$routes->get('/', 'Home::index');
+$routes->get('/', 'Races::index');
 
 // -------------------------------------------------------
 // Cycling – Téma 1
